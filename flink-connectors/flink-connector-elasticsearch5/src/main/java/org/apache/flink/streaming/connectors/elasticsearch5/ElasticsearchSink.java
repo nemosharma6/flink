@@ -96,6 +96,8 @@ public class ElasticsearchSink<T> extends RichSinkFunction<T>  {
 	 * The user specified config map that we forward to Elasticsearch when we create the Client.
 	 */
 	private final Map<String, String> userConfig;
+	
+	private final Map<String, String> sinkConfig;
 
 	/**
 	 * The list of nodes that the TransportClient should connect to. This is null if we are using
@@ -141,8 +143,9 @@ public class ElasticsearchSink<T> extends RichSinkFunction<T>  {
 	 * @param elasticsearchSinkFunction This is used to generate the ActionRequest from the incoming element
 	 *
 	 */
-	public ElasticsearchSink(Map<String, String> userConfig, List<InetSocketAddress> transportAddresses, ElasticsearchSinkFunction<T> elasticsearchSinkFunction) {
+	public ElasticsearchSink(Map<String, String> userConfig, Map<String, String> sinkConfig ,List<InetSocketAddress> transportAddresses, ElasticsearchSinkFunction<T> elasticsearchSinkFunction) {
 		this.userConfig = userConfig;
+		this.sinkConfig = sinkConfig;
 		this.elasticsearchSinkFunction = elasticsearchSinkFunction;
 		Preconditions.checkArgument(transportAddresses != null && transportAddresses.size() > 0);
 		this.transportAddresses = transportAddresses;
@@ -209,12 +212,11 @@ public class ElasticsearchSink<T> extends RichSinkFunction<T>  {
 		// This makes flush() blocking
 		bulkProcessorBuilder.setConcurrentRequests(0);
 
-		ParameterTool params = ParameterTool.fromMap(userConfig);
-		bulkProcessorBuilder.setBulkActions(1);
+		ParameterTool params = ParameterTool.fromMap(sinkConfig);
 		
-		/*if (params.has(CONFIG_KEY_BULK_FLUSH_MAX_ACTIONS)) {
+		if (params.has(CONFIG_KEY_BULK_FLUSH_MAX_ACTIONS)) {
 			bulkProcessorBuilder.setBulkActions(params.getInt(CONFIG_KEY_BULK_FLUSH_MAX_ACTIONS));
-		}*/
+		}
 
 		if (params.has(CONFIG_KEY_BULK_FLUSH_MAX_SIZE_MB)) {
 			bulkProcessorBuilder.setBulkSize(new ByteSizeValue(params.getInt(

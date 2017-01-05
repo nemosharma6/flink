@@ -60,14 +60,17 @@ public class ElasticsearchExample {
 					}
 				});
 
-		Map<String, String> config = new HashMap<>();
+		Map<String, String> eConfig = new HashMap<>();
 		// This instructs the sink to emit after every element, otherwise they would be buffered
-		config.put(ElasticsearchSink.CONFIG_KEY_BULK_FLUSH_MAX_ACTIONS, "1");
-
+		eConfig.put("cluster.name", "elasticsearch");
+		
+		//sink config
+		Map<String, String> sConfig = new HashMap<>();
+		sConfig.put(ElasticsearchSink.CONFIG_KEY_BULK_FLUSH_MAX_ACTIONS, "1");
 		List<InetSocketAddress> transports = new ArrayList<>();
 		transports.add(new InetSocketAddress(InetAddress.getByName("127.0.0.1"), 9300));
 
-		source.addSink(new ElasticsearchSink<>(config, transports, new ElasticsearchSinkFunction<String>(){
+		source.addSink(new ElasticsearchSink<>(eConfig, sConfig , transports, new ElasticsearchSinkFunction<String>(){
 			@Override
 			public void process(String element, RuntimeContext ctx, RequestIndexer indexer) {
 				indexer.add(createIndexRequest(element));
